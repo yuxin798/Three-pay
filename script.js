@@ -9,13 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
         this.setAttribute('readonly', 'readonly');
     });
     
-    // 保持页面固定，防止iOS上弹性滚动引起的页面回弹
-    document.body.addEventListener('touchmove', function(e) {
-        if (e.target.tagName !== 'INPUT') {
-            e.preventDefault();
-        }
-    }, { passive: false });
-    
     // 当前输入的金额
     let currentAmount = '';
     
@@ -30,27 +23,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 为每个按键添加点击和触摸事件
     keys.forEach(key => {
-        // 使用触摸事件以获得更好的移动端响应
         key.addEventListener('touchstart', handleKeyPress);
         key.addEventListener('click', handleKeyPress);
-        
-        // 防止触摸时出现阴影或高亮
-        key.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            this.classList.add('active');
-        }, { passive: false });
-        
-        key.addEventListener('touchend', function() {
-            this.classList.remove('active');
-        });
     });
     
-    function handleKeyPress() {
-        const value = this.textContent;
-        
+    function handleKeyPress(e) {
+        e.preventDefault();
         if (this.classList.contains('empty')) {
             return;
         }
+        
+        const value = this.textContent;
         
         if (value === '⌫') {
             // 删除最后一个字符
@@ -97,20 +80,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // 更新输入框显示
-        amountInput.value = currentAmount;
+        if (currentAmount === '') {
+            amountInput.value = '0';  // 当没有输入时显示0
+        } else {
+            amountInput.value = currentAmount;
+        }
         
         // 更新付款按钮颜色
         updatePayButtonColor();
     }
     
     // 禁用双击缩放
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(e) {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
+    document.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
             e.preventDefault();
         }
-        lastTouchEnd = now;
     }, { passive: false });
     
     // 适配 iOS 设备
